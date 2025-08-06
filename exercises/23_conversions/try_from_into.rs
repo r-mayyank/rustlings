@@ -28,14 +28,37 @@ enum IntoColorError {
 impl TryFrom<(i16, i16, i16)> for Color {
     type Error = IntoColorError;
 
-    fn try_from(tuple: (i16, i16, i16)) -> Result<Self, Self::Error> {}
+    fn try_from(tuple: (i16, i16, i16)) -> Result<Self, Self::Error> {
+        let (r, g, b) = tuple;
+        // if r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 {
+        //     return Err(IntoColorError::IntConversion);
+        // }
+        if !(0..=255).contains(&r) || !(0..=255).contains(&g) || !(0..=255).contains(&b) {
+            return Err(IntoColorError::IntConversion);
+        }
+        Ok(Color {
+            red: r as u8,
+            green: g as u8,
+            blue: b as u8,
+        })
+    }
 }
 
 // TODO: Array implementation.
 impl TryFrom<[i16; 3]> for Color {
     type Error = IntoColorError;
 
-    fn try_from(arr: [i16; 3]) -> Result<Self, Self::Error> {}
+    fn try_from(arr: [i16; 3]) -> Result<Self, Self::Error> {
+        let [r, g, b] = arr;
+        if !(0..=255).contains(&r) || !(0..=255).contains(&g) || !(0..=255).contains(&b) {
+            return Err(IntoColorError::IntConversion);
+        }
+        Ok(Color {
+            red: r as u8,
+            green: g as u8,
+            blue: b as u8,
+        })
+    }
 }
 
 // TODO: Slice implementation.
@@ -43,7 +66,36 @@ impl TryFrom<[i16; 3]> for Color {
 impl TryFrom<&[i16]> for Color {
     type Error = IntoColorError;
 
-    fn try_from(slice: &[i16]) -> Result<Self, Self::Error> {}
+    fn try_from(slice: &[i16]) -> Result<Self, Self::Error> {
+        if slice.len() != 3 {
+            return Err(IntoColorError::BadLen);
+        }
+        if let [r, g, b] = slice {
+            if ![*r, *g, *b].iter().all(|&x| (0..=255).contains(&x)) {
+                return Err(IntoColorError::IntConversion);
+            }
+            Ok(Color {
+                red: *r as u8,
+                green: *g as u8,
+                blue: *b as u8,
+            })
+        } else {
+            Err(IntoColorError::BadLen)
+        }
+        // We can use pattern matching to destructure the slice.
+        // let [r, g, b] = match slice {
+        //     [r, g, b] => (r, g, b),
+        //     _ => return Err(IntoColorError::BadLen), // This case should not happen due to the length check above.
+        // };
+        // if (0..=255).contains(r) || (0..=255).contains(g) || (0..=255).contains(b) {
+        //     return Err(IntoColorError::IntConversion);
+        // }
+        // Ok(Color {
+        //     red: *r as u8,
+        //     green: *g as u8,
+        //     blue: *b as u8,
+        // })
+    }
 }
 
 fn main() {
